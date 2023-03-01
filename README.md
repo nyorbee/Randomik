@@ -1,5 +1,5 @@
 # Randomik
-With this program, you can randomly select and copy photos from one folder to another. This can be useful, for example, when you want to hang photos in a frame but want to do it completely randomly.
+With this program, you can randomly select and copy photos from one folder to another. This can be useful, for example, when you want to hang photos in a frame on the wall but want to do it completely randomly.
 
 The available options are:
 
