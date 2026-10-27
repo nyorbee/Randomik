@@ -82,3 +82,7 @@ In `%APPDATA%\RandomikME\settings.json` (language, checkboxes and, only if you t
 ## Feedback
 
 Still a beta, and constructive criticism is very welcome. Found a bug or have an idea? Open an [issue](../../issues).
+
+## License
+
+MIT, see the [LICENSE](LICENSE) file.
