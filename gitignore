@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# IDEs
+.idea/
+.vscode/
+
+# Build output (Nuitka / PyInstaller)
+build/
+dist/
+*.spec
+*.build/
+*.dist/
+*.onefile-build/
+*.exe
+
+# Local settings
+settings.json
