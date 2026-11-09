@@ -21,9 +21,11 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 from tkinter import font as tkfont
 
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image, ImageChops, ImageDraw, ImageTk
 
 APP_NAME = "RandomikME"
+APP_VERSION = "1.1"
+FACEBOOK_URL = "https://www.facebook.com/ajtiguy"
 GITHUB_URL = "https://github.com/nyorbee"
 BTN = "#A9A9A9"  # classic grey used for the buttons
 
@@ -320,6 +322,19 @@ def _trash_icon():
     return img
 
 
+def make_highlight(img, left):
+    """Win9x 'selected' look on one half of the logo: dark areas turn navy, white stays white."""
+    base = img.convert("RGBA")
+    w, h = base.size
+    box = (0, 0, w // 2, h) if left else (w // 2, 0, w, h)
+    part = base.crop(box)
+    rgb = ImageChops.screen(part.convert("RGB"), Image.new("RGB", part.size, "#000080"))
+    rgb.putalpha(part.getchannel("A"))
+    out = base.copy()
+    out.paste(rgb, box[:2])
+    return out
+
+
 def add_tooltip(widget, text):
     """Classic yellow Windows tooltip."""
     state = {"win": None}
@@ -339,9 +354,9 @@ def add_tooltip(widget, text):
             state["win"].destroy()
             state["win"] = None
 
-    widget.bind("<Enter>", show)
-    widget.bind("<Leave>", hide)
-    widget.bind("<ButtonPress>", hide)
+    widget.bind("<Enter>", show, add="+")
+    widget.bind("<Leave>", hide, add="+")
+    widget.bind("<ButtonPress>", hide, add="+")
 
 
 def make_icons():
@@ -371,7 +386,7 @@ class App:
             except Exception:
                 pass
 
-        root.title(APP_NAME)
+        root.title(f"{APP_NAME} v{APP_VERSION}")
         root.resizable(False, False)
         try:
             root.iconbitmap(resource_path("favicon2.ico"))
@@ -502,11 +517,31 @@ class App:
         try:
             img = Image.open(resource_path("created.png"))
             img.thumbnail((200, 200))
-            self.badge_img = ImageTk.PhotoImage(img)  # keep a reference!
-            badge = tk.Label(main, image=self.badge_img, borderwidth=4, highlightthickness=4,
-                             cursor="hand2")
+            # keep references, otherwise the images disappear
+            self.badge = {None: ImageTk.PhotoImage(img),
+                          "fb": ImageTk.PhotoImage(make_highlight(img, True)),
+                          "gh": ImageTk.PhotoImage(make_highlight(img, False))}
+            badge = tk.Label(main, image=self.badge[None], bd=2, relief="sunken", cursor="hand2")
             badge.pack(pady=(8, 0))
-            badge.bind("<Button-1>", lambda _e: webbrowser.open(GITHUB_URL))
+
+            def half(event):  # left half -> Facebook, right half -> GitHub
+                return "fb" if event.x < event.widget.winfo_width() / 2 else "gh"
+
+            def on_motion(event):
+                key = half(event)
+                badge.config(image=self.badge[key])
+                if not self.running:
+                    self.status.set("Facebook: IT Guy" if key == "fb" else "GitHub: nyorbee")
+
+            def on_leave(_event):
+                badge.config(image=self.badge[None])
+                if not self.running:
+                    self.status.set(self.t("ready"))
+
+            badge.bind("<Motion>", on_motion)
+            badge.bind("<Leave>", on_leave)
+            badge.bind("<Button-1>", lambda e: webbrowser.open(
+                FACEBOOK_URL if half(e) == "fb" else GITHUB_URL))
         except (OSError, tk.TclError):
             pass
 
